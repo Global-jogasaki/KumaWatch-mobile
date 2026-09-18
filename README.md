@@ -19,7 +19,7 @@ ACM SIGSPATIAL 2026, Applications Track (short paper).
 
 | | Desktop (`KumaWatch`) | Mobile (this repository) |
 |---|---|---|
-| Map payload | 2.37 MB HTML with the score matrices inlined | 40 kB shell + `data/yamagata_2025.json` fetched in parallel (1.89 MB raw, **≈ 358 kB gzipped**), started from the page `<head>` before Leaflet parses |
+| Map payload | 2.37 MB HTML with the score matrices inlined | 40 kB shell + `mobile-data/yamagata_2025.json` fetched in parallel (1.89 MB raw, **≈ 358 kB gzipped**), started from the page `<head>` before Leaflet parses |
 | Data layout | `{date: {cell_id: [...]}}` — the cell ids repeat 52,560 times | column-wise arrays in a fixed cell order; identical values, no rounding |
 | Controls | 315 px left sidebar, hover-driven | draggable bottom sheet with peek / half / full snap points, every control inside the thumb arc |
 | Layer & budget | `<select>` + 1–144 slider | chip rails (GLM-Logit / HierBayes / TTM / Extra Trees, 上位5–全144) |
@@ -40,31 +40,31 @@ calibrated), the daily ranking, the detail panel and the K = 20 default.
 ```
 index.html                 # landing page — benchmark tables, mobile-first
 map.html                   # map screen — Leaflet + bottom sheet
-assets/
+mobile-assets/
   base.css                 # shared tokens (colour, spacing, safe areas, tap size)
   index.css  index.js      # landing page
   map.css    map.js        # map screen
-data/
+mobile-data/
   yamagata_2025.json       # 144 cells x 365 days x 5 series (glm, hb, ttm, et, actual)
-icons/                     # SVG favicon + PNG home-screen icons
+mobile-icons/              # SVG favicon + PNG home-screen icons
 manifest.webmanifest       # installable web app
 sw.js                      # offline cache (shell + scores + Leaflet)
-tools/
-  build_data.py            # rebuild data/*.json from the desktop map
+mobile-tools/
+  build_data.py            # rebuild mobile-data/*.json from the desktop map
   make_icons.py            # rasterise the home-screen icons (no image dependencies)
   test/smoke.js            # headless iPhone-sized smoke test
 ```
 
 ## Data provenance
 
-`data/yamagata_2025.json` is extracted from `maps/kumawatch_primary_layer.html` in the KumaWatch
+`mobile-data/yamagata_2025.json` is extracted from `maps/kumawatch_primary_layer.html` in the KumaWatch
 repository — the same released score matrices the paper reports on. Values are copied verbatim, so the
 mobile map ranks cells exactly as the published map does.
 
 ```bash
 # from a checkout that sits next to a KumaWatch checkout
-python tools/build_data.py                                   # default source path
-python tools/build_data.py ../KumaWatch/maps/kumawatch_primary_layer.html
+python mobile-tools/build_data.py                                   # default source path
+python mobile-tools/build_data.py ../KumaWatch/maps/kumawatch_primary_layer.html
 ```
 
 Each day holds five series per cell: `glm`, `hb` (HierBayes posterior mean), `ttm`, `et`, and `actual`
@@ -84,13 +84,13 @@ service worker serves the shell and the scores offline.
 
 ```bash
 npm install -D playwright          # or use an existing Playwright install
-node tools/test/smoke.js           # add --shots DIR to save screenshots
+node mobile-tools/test/smoke.js           # add --shots DIR to save screenshots
 ```
 
 The suite emulates an iPhone-sized viewport with touch input and drives both pages: bar/table views,
 ranking, detail panel, layer and budget switching, date navigation, URL state, sheet snapping, the
 landscape side-panel layout and a 320 px-wide screen. It fails on any console error. Leaflet and the
-tiles are stubbed (`tools/test/leaflet-stub.js`), so it runs without network access.
+tiles are stubbed (`mobile-tools/test/leaflet-stub.js`), so it runs without network access.
 
 ## Deployment
 

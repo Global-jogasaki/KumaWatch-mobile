@@ -1,5 +1,5 @@
-/* Minimal stand-in for the parts of Leaflet that assets/map.js uses.
- * Only for the headless smoke test in tools/test/smoke.js: the sandbox that
+/* Minimal stand-in for the parts of Leaflet that mobile-assets/map.js uses.
+ * Only for the headless smoke test in mobile-tools/test/smoke.js: the sandbox that
  * runs the test has no egress to unpkg.com, and the real library is not
  * needed to exercise the app's own logic. It projects lat/lng linearly onto
  * the container so the rendered grid is still visually checkable. */

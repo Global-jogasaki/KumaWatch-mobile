@@ -10,10 +10,10 @@
 (function () {
   'use strict';
 
-  var DATA_URL = 'data/yamagata_2025.json';
+  var DATA_URL = 'mobile-data/yamagata_2025.json';
   var DEFAULT_DATE = '2025-10-12';
 
-  /* Column order inside data.daily[day] — see tools/build_data.py. */
+  /* Column order inside data.daily[day] — see mobile-tools/build_data.py. */
   var COL = { glm: 0, hb: 1, ttm: 2, et: 3, act: 4 };
 
   var LAYER_NAMES = {
@@ -46,7 +46,7 @@
   var TIER_LABEL_RANK = ['上位5', '上位10', '上位20', 'それ以外'];
   var DOW = ['日', '月', '火', '水', '木', '金', '土'];
 
-  var D = null;                 // payload from data/yamagata_2025.json
+  var D = null;                 // payload from mobile-data/yamagata_2025.json
   var idx = 0;                  // current day index
   var layer = 'glm';
   var topN = 20;

@@ -6,22 +6,22 @@
  * deliberately NOT cached: they are third-party, unbounded in number, and
  * OpenStreetMap's tile usage policy asks clients not to bulk-store them.
  */
-var VERSION = 'kw-mobile-v1';
+var VERSION = 'kw-mobile-v2';   // bumped when the asset paths changed
 
 var SHELL = [
   './',
   './index.html',
   './map.html',
-  './assets/base.css',
-  './assets/index.css',
-  './assets/map.css',
-  './assets/index.js',
-  './assets/map.js',
-  './data/yamagata_2025.json',
+  './mobile-assets/base.css',
+  './mobile-assets/index.css',
+  './mobile-assets/map.css',
+  './mobile-assets/index.js',
+  './mobile-assets/map.js',
+  './mobile-data/yamagata_2025.json',
   './manifest.webmanifest',
-  './icons/icon.svg',
-  './icons/apple-touch-icon.png',
-  './icons/icon-192.png',
+  './mobile-icons/icon.svg',
+  './mobile-icons/apple-touch-icon.png',
+  './mobile-icons/icon-192.png',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
 ];

@@ -12,7 +12,7 @@ Values are copied verbatim — no rounding, no re-scaling — so the mobile map
 ranks cells exactly as the published map does.
 
 Usage:
-    python tools/build_data.py [SOURCE_HTML] [-o data/yamagata_2025.json]
+    python mobile-tools/build_data.py [SOURCE_HTML] [-o mobile-data/yamagata_2025.json]
 """
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ import sys
 
 LAYERS = ["glm", "hb", "ttm", "et", "act"]
 DEFAULT_SRC = "../KumaWatch/maps/kumawatch_primary_layer.html"
-DEFAULT_OUT = "data/yamagata_2025.json"
+DEFAULT_OUT = "mobile-data/yamagata_2025.json"
 
 
 def parse_source(html: str) -> tuple[dict, dict]:

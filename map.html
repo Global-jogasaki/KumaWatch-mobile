@@ -12,15 +12,15 @@
 <meta name="format-detection" content="telephone=no">
 <title>KumaWatch — 山形県 熊出没危険予測マップ 2025(モバイル版)</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="mobile-icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="mobile-icons/apple-touch-icon.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="assets/base.css">
-<link rel="stylesheet" href="assets/map.css">
+<link rel="stylesheet" href="mobile-assets/base.css">
+<link rel="stylesheet" href="mobile-assets/map.css">
 <script>
 /* Start the 2025 score download before Leaflet and the app script parse —
    on a phone this overlaps the slowest part of the load with the rest of it. */
-window.__kwData = fetch('data/yamagata_2025.json')
+window.__kwData = fetch('mobile-data/yamagata_2025.json')
   .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
   .catch(function () { return null; });
 </script>
@@ -189,6 +189,6 @@ window.__kwData = fetch('data/yamagata_2025.json')
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-<script src="assets/map.js" defer></script>
+<script src="mobile-assets/map.js" defer></script>
 </body>
 </html>

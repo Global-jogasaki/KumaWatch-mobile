@@ -1,10 +1,10 @@
 /* Headless smoke test for the mobile site.
  *
- *   node tools/test/smoke.js [--headed] [--shots DIR]
+ *   node mobile-tools/test/smoke.js [--headed] [--shots DIR]
  *
  * Emulates an iPhone-sized viewport with touch input, drives the real pages,
  * and fails on any console error. Leaflet and the OpenStreetMap tiles are
- * replaced by tools/test/leaflet-stub.js and a blank tile, so the test needs
+ * replaced by mobile-tools/test/leaflet-stub.js and a blank tile, so the test needs
  * no network access. */
 const { chromium, devices } = require('playwright');
 const http = require('http');

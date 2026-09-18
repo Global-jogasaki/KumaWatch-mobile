@@ -12,10 +12,10 @@
 <meta name="format-detection" content="telephone=no">
 <title>KumaWatch 🐻 — Cost-Annotated Top-K Benchmark (Mobile)</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="stylesheet" href="assets/base.css">
-<link rel="stylesheet" href="assets/index.css">
+<link rel="icon" href="mobile-icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="mobile-icons/apple-touch-icon.png">
+<link rel="stylesheet" href="mobile-assets/base.css">
+<link rel="stylesheet" href="mobile-assets/index.css">
 </head>
 <body>
 
@@ -294,7 +294,7 @@
         <div><dt>Published significance tests (Δ, 95% CI, permutation <em>p</em>)</dt><dd><code>python scripts/table2_significance.py</code></dd></div>
         <div><dt>Calibration metrics (Brier, Brier Skill Score)</dt><dd><code>python scripts/calibration_validation.py</code></dd></div>
         <div><dt>Cross-method top-K agreement (Jaccard@K)</dt><dd><code>python scripts/crosslayer_jaccard.py --check</code></dd></div>
-        <div><dt>This mobile build</dt><dd><code>python tools/build_data.py</code> — re-extracts the daily score matrices from the desktop map into <code>data/yamagata_2025.json</code>.</dd></div>
+        <div><dt>This mobile build</dt><dd><code>python mobile-tools/build_data.py</code> — re-extracts the daily score matrices from the desktop map into <code>mobile-data/yamagata_2025.json</code>.</dd></div>
       </dl>
     </div>
   </details>
@@ -316,6 +316,6 @@
   </button>
 </nav>
 
-<script src="assets/index.js" defer></script>
+<script src="mobile-assets/index.js" defer></script>
 </body>
 </html>

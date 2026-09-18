@@ -7,7 +7,7 @@ the few circles and ellipses this mark is made of are rasterised here with 4x
 supersampling and written through ``zlib`` as plain RGB PNGs.
 
 Usage:
-    python tools/make_icons.py
+    python mobile-tools/make_icons.py
 """
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ import pathlib
 import struct
 import zlib
 
-OUT = pathlib.Path(__file__).resolve().parent.parent / "icons"
+OUT = pathlib.Path(__file__).resolve().parent.parent / "mobile-icons"
 
 BG = (0x14, 0x33, 0x21)      # deep forest green
 FUR = (0x6a, 0xdf, 0x8a)     # KumaWatch accent
