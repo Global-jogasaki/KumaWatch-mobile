@@ -1,0 +1,116 @@
+/* ==========================================================================
+   KumaWatch mobile — shared tokens and primitives
+   Phone-first: every rule here targets a 320–430 px viewport; wider screens
+   are handled by the two min-width blocks at the end of each file.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  --bg:        #0d1c13;
+  --surface:   #162e1e;
+  --surface-2: #132619;
+  --sunken:    #0d1e12;
+  --line:      #24512f;
+  --line-soft: #1c3d24;
+  --text:      #ddebd5;
+  --text-hi:   #ffffff;
+  --muted:     #8fa79a;
+  --muted-2:   #6a9474;
+  --accent:    #6adf8a;
+  --accent-dk: #1e5030;
+  --info:      #6ab8df;
+  --warn:      #dfa050;
+
+  --alert: #e81515;
+  --high:  #f06520;
+  --mid:   #e0b800;
+  --low:   #28a030;
+
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+
+  /* Horizontal page gutter, widened on notched devices in landscape. */
+  --gut-l: max(16px, env(safe-area-inset-left));
+  --gut-r: max(16px, env(safe-area-inset-right));
+
+  /* Minimum comfortable touch target (Apple HIG: 44 pt). */
+  --tap: 44px;
+
+  --font: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
+          "Hiragino Sans", "Segoe UI", Meiryo, system-ui, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* Components below set display explicitly, which would otherwise beat the
+   user-agent rule for [hidden]. */
+[hidden] { display: none !important; }
+
+html {
+  /* Stop iOS from inflating text when the phone is rotated to landscape. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  /* Long words and URLs must not force a horizontal scrollbar on a phone. */
+  overflow-wrap: break-word;
+}
+
+a { color: var(--accent); }
+
+/* Suppress the grey iOS flash and replace it with explicit :active states,
+   which stay legible on a dark background. */
+a, button, summary, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  /* Removes the 300 ms double-tap-to-zoom delay on interactive elements. */
+  touch-action: manipulation;
+}
+
+button, select, input { font: inherit; color: inherit; }
+
+/* iOS zooms the viewport when a focused control is under 16 px. */
+select, input, textarea { font-size: 16px; }
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .9em;
+  background: var(--sunken);
+  border: 1px solid var(--line-soft);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+/* Risk tiers — shared by the index legend and the map. */
+.t-alert { background: var(--alert); color: #fff; }
+.t-high  { background: var(--high);  color: #fff; }
+.t-mid   { background: var(--mid);   color: #1a1000; }
+.t-low   { background: var(--low);   color: #d8f8d0; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

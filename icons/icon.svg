@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="KumaWatch">
+  <rect width="100" height="100" fill="#143321"/>
+  <g transform="translate(50 50) scale(0.88) translate(-50 -50)">
+    <circle cx="29" cy="34" r="13.5" fill="#6adf8a"/>
+    <circle cx="71" cy="34" r="13.5" fill="#6adf8a"/>
+    <circle cx="30" cy="35" r="6.2" fill="#143321"/>
+    <circle cx="70" cy="35" r="6.2" fill="#143321"/>
+    <ellipse cx="50" cy="57" rx="30" ry="28.5" fill="#6adf8a"/>
+    <ellipse cx="50" cy="67" rx="15.5" ry="12" fill="#dcf5e2"/>
+    <ellipse cx="40.5" cy="51" rx="4" ry="4.4" fill="#0b1a10"/>
+    <ellipse cx="59.5" cy="51" rx="4" ry="4.4" fill="#0b1a10"/>
+    <ellipse cx="50" cy="62.5" rx="5.8" ry="4.2" fill="#0b1a10"/>
+  </g>
+</svg>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,viewport-fit=cover">
+<meta name="theme-color" content="#0d1c13">
+<meta name="description" content="KumaWatch モバイル版 — 山形県 熊出没危険予測マップ 2025。GLM-Logit / HierBayes / TTM / Extra Trees の4レイヤーを365日分、スマートフォンで閲覧できます。">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KumaWatch">
+<meta name="format-detection" content="telephone=no">
+<title>KumaWatch — 山形県 熊出没危険予測マップ 2025(モバイル版)</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/map.css">
+<script>
+/* Start the 2025 score download before Leaflet and the app script parse —
+   on a phone this overlaps the slowest part of the load with the rest of it. */
+window.__kwData = fetch('data/yamagata_2025.json')
+  .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .catch(function () { return null; });
+</script>
+</head>
+<body>
+
+<div id="app">
+  <div id="map"></div>
+
+  <div id="topbar">
+    <a class="tb-btn" href="index.html" aria-label="トップへ戻る">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+    </a>
+    <div class="tb-title">
+      <b>🐻 KumaWatch — 山形県 2025</b>
+      <span id="tb-layer">GLM-Logit スコア</span>
+    </div>
+    <span class="tb-sp"></span>
+  </div>
+
+  <div id="mapbtns">
+    <button class="map-btn" id="btn-locate" type="button" aria-label="現在地を表示" aria-pressed="false">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8"/></svg>
+    </button>
+    <button class="map-btn" id="btn-reset" type="button" aria-label="全体表示に戻す">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 9V4h5M21 9V4h-5M3 15v5h5M21 15v5h-5"/></svg>
+    </button>
+  </div>
+
+  <section id="sheet" aria-label="コントロールパネル">
+    <div id="grab" role="button" tabindex="0" aria-label="パネルを開閉"></div>
+    <div id="sheet-scroll">
+
+      <!-- 日付 -->
+      <div class="blk">
+        <div class="date-row">
+          <button class="date-nav" id="prev-day" type="button" aria-label="前日">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <div class="date-main">
+            <div id="date-display">2025-10-12</div>
+            <div id="day-info">読み込み中…</div>
+          </div>
+          <button class="date-nav" id="next-day" type="button" aria-label="翌日">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+        <input type="range" id="day-slider" min="0" max="364" value="284" step="1" aria-label="日付スライダー">
+        <div class="rail" id="month-rail" aria-label="月を選択"></div>
+        <div class="play-row">
+          <button id="play-btn" type="button">▶ 再生</button>
+          <select id="speed-sel" aria-label="再生速度">
+            <option value="700">遅い</option>
+            <option value="350" selected>標準</option>
+            <option value="140">速い</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 予測レイヤー -->
+      <div class="blk">
+        <div class="blk-t">予測レイヤー</div>
+        <div class="rail" id="layer-rail">
+          <button class="chip" type="button" data-layer="glm" aria-pressed="true">GLM-Logit<span class="sr-only"> 主層</span></button>
+          <button class="chip" type="button" data-layer="hb" aria-pressed="false">HierBayes</button>
+          <button class="chip" type="button" data-layer="ttm" aria-pressed="false">TTM</button>
+          <button class="chip" type="button" data-layer="et" aria-pressed="false">Extra Trees</button>
+        </div>
+        <div class="small" id="layer-note" style="margin-top:6px"></div>
+      </div>
+
+      <!-- 表示セル数 -->
+      <div class="blk">
+        <div class="blk-t">表示セル数 — 上位 <span id="topn-val">20</span> / 144</div>
+        <div class="rail" id="topn-rail">
+          <button class="chip wide" type="button" data-n="5" aria-pressed="false">上位5</button>
+          <button class="chip wide" type="button" data-n="10" aria-pressed="false">上位10</button>
+          <button class="chip wide" type="button" data-n="20" aria-pressed="true">上位20 (K=20)</button>
+          <button class="chip wide" type="button" data-n="30" aria-pressed="false">上位30</button>
+          <button class="chip wide" type="button" data-n="50" aria-pressed="false">上位50</button>
+          <button class="chip wide" type="button" data-n="144" aria-pressed="false">全144</button>
+        </div>
+        <div class="small" style="margin-top:6px">巡回できるセル数は限られる。既定の 20 は論文の評価予算 K=20 に対応する。</div>
+      </div>
+
+      <!-- 日次統計 -->
+      <div class="blk">
+        <div class="blk-t">日次統計</div>
+        <div class="stat-grid">
+          <div class="stat-item"><div class="stat-label">表示セル</div><div class="stat-val" id="st-active">—</div></div>
+          <div class="stat-item"><div class="stat-label">最高リスク</div><div class="stat-val" id="st-maxrisk">—</div></div>
+          <div class="stat-item"><div class="stat-label">最上位帯</div><div class="stat-val" id="st-alert">—</div></div>
+          <div class="stat-item"><div class="stat-label">実目撃数</div><div class="stat-val" id="st-actual">—</div></div>
+        </div>
+      </div>
+
+      <!-- ランキング / 詳細 -->
+      <div class="blk" id="rank-panel">
+        <div class="blk-t">リスクランキング</div>
+        <div id="rank-list"></div>
+      </div>
+      <div class="blk" id="detail">
+        <button id="detail-back" type="button">← ランキングに戻る</button>
+        <div class="dp-city" id="dp-city">—</div>
+        <div class="dp-gid" id="dp-gid">—</div>
+
+        <div class="dp-sec">
+          <div class="dp-sec-t">主層 — GLM-Logit</div>
+          <div class="dp-row"><span class="dp-label">予測確率</span><span class="dp-val" id="dp-glm">—</span></div>
+          <div class="dp-row"><span class="dp-label">本日順位</span><span class="dp-val" id="dp-rank">—</span></div>
+        </div>
+        <div class="dp-sec">
+          <div class="dp-sec-t">不確実性層 — HierBayes</div>
+          <div class="dp-row"><span class="dp-label">事後平均</span><span class="dp-val" id="dp-hbm">—</span></div>
+        </div>
+        <div class="dp-sec">
+          <div class="dp-sec-t">補完層 — TTM / Extra Trees</div>
+          <div class="dp-row"><span class="dp-label">TTM スコア</span><span class="dp-val" id="dp-ttm">—</span><span id="dp-ttm-agree"></span></div>
+          <div class="dp-row"><span class="dp-label">ET スコア</span><span class="dp-val" id="dp-et">—</span><span id="dp-et-agree"></span></div>
+        </div>
+        <div class="dp-sec">
+          <div class="dp-sec-t">目撃履歴 (訓練データ)</div>
+          <div class="hist-row">
+            <div class="hist-item"><div class="hi-label">直近30日</div><div class="hi-val" id="dp-h30">—</div></div>
+            <div class="hist-item"><div class="hi-label">2024年計</div><div class="hi-val" id="dp-h365">—</div></div>
+            <div class="hist-item"><div class="hi-label">全期間</div><div class="hi-val" id="dp-hall">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 凡例 -->
+      <div class="blk">
+        <div class="blk-t">リスクレベル — <span id="leg-mode">予測確率</span></div>
+        <div class="leg-row"><span class="leg-box" style="background:#e81515"></span><span id="leg-0">緊急 (≥20%)</span></div>
+        <div class="leg-row"><span class="leg-box" style="background:#f06520"></span><span id="leg-1">高危険 (10–20%)</span></div>
+        <div class="leg-row"><span class="leg-box" style="background:#e0b800"></span><span id="leg-2">警戒 (5–10%)</span></div>
+        <div class="leg-row"><span class="leg-box" style="background:#28a030"></span><span id="leg-3">注意 (5% 未満)</span></div>
+        <div class="leg-row"><span class="leg-box" style="background:#1a3820;border:1px dashed #2a5030"></span><span style="color:#5f8a6c">非表示 (上位 N 件外)</span></div>
+        <div class="small" id="leg-note" style="margin-top:6px"></div>
+      </div>
+
+      <!-- 注意書き -->
+      <div class="blk">
+        <div class="warn-note">
+          <b>⚠ 注意</b> — 本マップの予測は行政機関による公式の出没情報・警告に代わるものではありません。
+          訓練データ: 2018年10月〜2024年12月。評価期間: 2025年1月〜12月(ホールドアウト)。
+          表示している値は公開済みスコア行列そのもので、デスクトップ版マップと同一です。
+        </div>
+        <div class="small" style="margin-top:8px">
+          <a href="index.html">ベンチマーク結果(指標一覧)</a> ·
+          <a href="https://global-jogasaki.github.io/KumaWatch/maps/kumawatch_primary_layer.html" target="_blank" rel="noopener">デスクトップ版マップ</a> ·
+          <a href="https://github.com/Global-jogasaki/KumaWatch" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div id="loader">
+    <div class="spin" aria-hidden="true"></div>
+    <div id="loader-msg">2025年の予測スコアを読み込み中…<br><span class="small">初回のみ約 360 kB。以降は端末にキャッシュされます。</span></div>
+    <button class="retry" id="loader-retry" type="button">再試行</button>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+<script src="assets/map.js" defer></script>
+</body>
+</html>

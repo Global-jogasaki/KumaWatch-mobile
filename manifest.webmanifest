@@ -1,0 +1,25 @@
+{
+  "name": "KumaWatch — Bear Encounter Risk (Mobile)",
+  "short_name": "KumaWatch",
+  "description": "Mobile edition of the KumaWatch benchmark: daily bear-encounter risk maps for Yamagata, 2025, across four prediction layers.",
+  "lang": "ja",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0d1c13",
+  "theme_color": "#0d1c13",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ],
+  "shortcuts": [
+    {
+      "name": "予測マップ",
+      "short_name": "マップ",
+      "url": "./map.html",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}

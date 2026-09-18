@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d1c13">
+<meta name="description" content="KumaWatch — mobile edition. Cost-annotated top-K benchmark of eleven wildlife-encounter prediction methods on held-out 2025 sighting records from Yamagata and Akita, Japan.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KumaWatch">
+<meta name="format-detection" content="telephone=no">
+<title>KumaWatch 🐻 — Cost-Annotated Top-K Benchmark (Mobile)</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/index.css">
+</head>
+<body>
+
+<header class="topbar">
+  <span class="mark" aria-hidden="true">🐻</span>
+  <span class="name">KumaWatch</span>
+  <span class="spacer"></span>
+  <a class="go" href="map.html">🗺️ Map</a>
+</header>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="bear" aria-hidden="true">🐻</div>
+    <h1>KumaWatch</h1>
+    <p class="sub">Benchmarking Wildlife Encounter Prediction for Municipal Decision Support in Northern Japan</p>
+    <p class="conf">ACM SIGSPATIAL 2026 — Applications Track</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-num">0.547</div><div class="stat-lbl">Recall@20 · Yamagata<br>sighting days (n = 213)</div></div>
+    <div class="stat"><div class="stat-num">0.245</div><div class="stat-lbl">Precision@20 · Yamagata<br>sighting days (n = 213)</div></div>
+    <div class="stat"><div class="stat-num">11</div><div class="stat-lbl">Methods benchmarked<br>in the paper</div></div>
+    <div class="stat"><div class="stat-num">365</div><div class="stat-lbl">Held-out days<br>2025</div></div>
+  </div>
+
+  <a class="btn" href="map.html">▶ Open the benchmark map</a>
+  <a class="btn btn-outline" href="https://github.com/Global-jogasaki/KumaWatch" target="_blank" rel="noopener">📁 GitHub repository</a>
+
+  <div class="a2hs" id="a2hs" hidden>
+    <div>Tap <b>Share</b> → <b>Add to Home Screen</b> to keep KumaWatch one tap away. The map then also opens without a network connection.</div>
+    <button type="button" id="a2hs-close" aria-label="Dismiss">×</button>
+  </div>
+
+  <div class="notice">
+    <strong>Supplementary diagnostics.</strong>
+    The Precision@K, ROC-AUC, and daily case analyses below supplement the four-page proceedings paper. They are retrospective analyses of the same held-out 2025 labels and the released or deterministically regenerated daily scores. They do not constitute a post-deployment evaluation or evidence of causal operational benefit.
+  </div>
+
+  <!-- ── Protocol ─────────────────────────────────────────────────────── -->
+  <details class="acc" open>
+    <summary>
+      <span class="s-txt"><b>Evaluation protocol</b><span>Conditions behind every number</span></span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </summary>
+    <div class="body">
+      <p class="lead">Top-K metrics change substantially with the averaging set and the value of K, so the conditions are stated once here rather than attached to each table.</p>
+      <dl class="dl">
+        <div><dt>Task</dt><dd>Global top-K: for each day, the K cells with the highest score across the whole prefectural grid. Grids are 144 cells (Yamagata) and 260 (Akita), each ≈10 km × 10 km.</dd></div>
+        <div><dt>Window</dt><dd>The held-out year 2025, 365 days. Model fitting uses data through 2024-12-31 only; recency features for day <em>t</em> use observations strictly before <em>t</em>.</dd></div>
+        <div><dt>K</dt><dd>10, 20 and 30. K = 20 is the patrol budget the paper evaluates.</dd></div>
+        <div><dt>Sighting days</dt><dd>Days with at least one reported sighting — 213 of 365 (Yamagata), 323 of 365 (Akita). Recall@K is only defined here, so this is the set the paper reports.</dd></div>
+        <div><dt>All days</dt><dd>All 365 days; a day with no sighting contributes a precision of 0. All-day and sighting-day values are computed and labelled separately; no reported aggregate combines the two day sets.</dd></div>
+        <div><dt>Ties</dt><dd>Ties are resolved by <code>numpy.argpartition</code>, matching the benchmark notebook. Tied cells have no semantic ordering at the K-th boundary; the exact selection depends on the versions pinned in <code>requirements-diagnostics.txt</code>.</dd></div>
+        <div><dt>Labels</dt><dd>A reported sighting, not occupancy. Every method predicts where sightings will be <em>reported</em>.</dd></div>
+        <div><dt>Coverage</dt><dd>The paper benchmarks eleven methods. These diagnostics cover ten of them: the four learned methods from released score matrices, and B0–B5 regenerated deterministically from Cell 5 of the benchmark notebook (<code>RAND_SEED = 42</code>). Poisson-GLM is the exception — no score matrix for it is released, and its published Recall@20 is 0.027.</dd></div>
+      </dl>
+    </div>
+  </details>
+
+  <!-- ── Recall / Precision, sighting days ────────────────────────────── -->
+  <details class="acc" open>
+    <summary>
+      <span class="s-txt"><b>Recall@K and Precision@K</b><span>Yamagata · sighting days (n = 213)</span></span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </summary>
+    <div class="body">
+      <p class="lead">The paper reports Recall@20 and Precision@20 on this set. Precision at the other budgets is added here; it was not in the four-page version.</p>
+      <div class="metric" data-bar-col="3" data-sub-col="4">
+        <div class="seg" role="tablist" aria-label="View">
+          <button type="button" role="tab" aria-selected="true" data-view="bars">Recall@20</button>
+          <button type="button" role="tab" aria-selected="false" data-view="table">All metrics</button>
+        </div>
+        <div class="bars" data-view-panel="bars"></div>
+        <div data-view-panel="table" hidden>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th scope="col">Method</th><th scope="col">R@10</th><th scope="col">P@10</th><th scope="col">R@20</th><th scope="col">P@20</th><th scope="col">R@30</th><th scope="col">P@30</th></tr></thead>
+              <tbody>
+                <tr><td>GLM-Logit</td><td class="n best">0.3448</td><td class="n best">0.3052</td><td class="n best">0.5470</td><td class="n best">0.2446</td><td class="n">0.6904</td><td class="n best">0.2106</td></tr>
+                <tr><td>HierBayes</td><td class="n">0.3280</td><td class="n">0.2826</td><td class="n">0.5425</td><td class="n">0.2369</td><td class="n best">0.6922</td><td class="n">0.2094</td></tr>
+                <tr><td>B5: B2+B3</td><td class="n">0.3326</td><td class="n">0.3005</td><td class="n">0.5342</td><td class="n">0.2437</td><td class="n">0.6604</td><td class="n">0.2086</td></tr>
+                <tr><td>B1: Static prior</td><td class="n">0.2864</td><td class="n">0.2441</td><td class="n">0.5331</td><td class="n">0.2319</td><td class="n">0.6588</td><td class="n">0.1973</td></tr>
+                <tr><td>B4: B1+B3</td><td class="n">0.3204</td><td class="n">0.2671</td><td class="n">0.5171</td><td class="n">0.2254</td><td class="n">0.6441</td><td class="n">0.1961</td></tr>
+                <tr><td>TTM (IBM Granite)</td><td class="n">0.2906</td><td class="n">0.2399</td><td class="n">0.4917</td><td class="n">0.2160</td><td class="n">0.6201</td><td class="n">0.1862</td></tr>
+                <tr><td>B2: Recent MA</td><td class="n">0.3106</td><td class="n">0.2925</td><td class="n">0.4857</td><td class="n">0.2387</td><td class="n">0.6066</td><td class="n">0.2019</td></tr>
+                <tr><td>B3: DoY season</td><td class="n">0.3048</td><td class="n">0.2573</td><td class="n">0.4749</td><td class="n">0.2136</td><td class="n">0.5871</td><td class="n">0.1862</td></tr>
+                <tr><td>Extra Trees</td><td class="n">0.2927</td><td class="n">0.2427</td><td class="n">0.4739</td><td class="n">0.2101</td><td class="n">0.6066</td><td class="n">0.1848</td></tr>
+                <tr><td>B0: Random</td><td class="n">0.0602</td><td class="n">0.0624</td><td class="n">0.1256</td><td class="n">0.0615</td><td class="n">0.1860</td><td class="n">0.0612</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="swipe-hint">← swipe the table →</p>
+        </div>
+      </div>
+      <p class="tnote">Highlighted values mark the highest in each column. Precision falls as K grows because the additional cells are mostly empty: at K = 30, roughly four in five inspected cells report no sighting. GLM-Logit achieves the highest Precision at all three budgets and the highest Recall at K = 10 and 20, while HierBayes leads Recall@30 by 0.0018. The seasonal baseline B5 is only 0.0009 behind GLM-Logit on Precision@20 while costing under one second per day. GLM-Logit's Recall@20 margin over the static prior does not reach significance (<em>p</em> = 0.158).</p>
+    </div>
+  </details>
+
+  <!-- ── Precision, all days ──────────────────────────────────────────── -->
+  <details class="acc">
+    <summary>
+      <span class="s-txt"><b>Precision@K</b><span>Yamagata · all 365 days (unconditional)</span></span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </summary>
+    <div class="body">
+      <p class="lead">The same predictions, now averaged over all 365 days. This unconditional measure answers a different operational question: the average daily yield when a patrol is dispatched every day. It is reported separately from the sighting-day precision used in the paper.</p>
+      <div class="metric" data-bar-col="2" data-sub-col="4">
+        <div class="seg" role="tablist" aria-label="View">
+          <button type="button" role="tab" aria-selected="true" data-view="bars">P@20</button>
+          <button type="button" role="tab" aria-selected="false" data-view="table">All metrics</button>
+        </div>
+        <div class="bars" data-view-panel="bars"></div>
+        <div data-view-panel="table" hidden>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th scope="col">Method</th><th scope="col">P@10</th><th scope="col">P@20</th><th scope="col">P@30</th><th scope="col">P@20, sighting days</th></tr></thead>
+              <tbody>
+                <tr><td>GLM-Logit</td><td class="n best">0.1781</td><td class="n best">0.1427</td><td class="n best">0.1229</td><td class="n flat">0.2446</td></tr>
+                <tr><td>B5: B2+B3</td><td class="n">0.1753</td><td class="n">0.1422</td><td class="n">0.1217</td><td class="n flat">0.2437</td></tr>
+                <tr><td>B2: Recent MA</td><td class="n">0.1707</td><td class="n">0.1393</td><td class="n">0.1178</td><td class="n flat">0.2387</td></tr>
+                <tr><td>HierBayes</td><td class="n">0.1649</td><td class="n">0.1382</td><td class="n">0.1222</td><td class="n flat">0.2369</td></tr>
+                <tr><td>B4: B1+B3</td><td class="n">0.1559</td><td class="n">0.1315</td><td class="n">0.1144</td><td class="n flat">0.2254</td></tr>
+                <tr><td>B1: Static prior</td><td class="n">0.1425</td><td class="n">0.1353</td><td class="n">0.1152</td><td class="n flat">0.2319</td></tr>
+                <tr><td>B3: DoY season</td><td class="n">0.1501</td><td class="n">0.1247</td><td class="n">0.1087</td><td class="n flat">0.2136</td></tr>
+                <tr><td>TTM (IBM Granite)</td><td class="n">0.1400</td><td class="n">0.1260</td><td class="n">0.1087</td><td class="n flat">0.2160</td></tr>
+                <tr><td>Extra Trees</td><td class="n">0.1416</td><td class="n">0.1226</td><td class="n">0.1079</td><td class="n flat">0.2101</td></tr>
+                <tr><td>B0: Random</td><td class="n">0.0364</td><td class="n">0.0359</td><td class="n">0.0357</td><td class="n flat">0.0615</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="swipe-hint">← swipe the table →</p>
+        </div>
+      </div>
+      <p class="tnote">Values from the two tables are not directly interchangeable because they condition on different day sets. The right-hand column repeats the sighting-day Precision@20 only to quantify the effect of this conditioning.</p>
+    </div>
+  </details>
+
+  <!-- ── ROC-AUC ──────────────────────────────────────────────────────── -->
+  <details class="acc">
+    <summary>
+      <span class="s-txt"><b>ROC-AUC</b><span>Three definitions, three questions</span></span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </summary>
+    <div class="body">
+      <p class="lead">ROC-AUC is reported as a supplementary threshold-free diagnostic. It does not replace Recall@K or Precision@K, which correspond directly to the fixed daily patrol budget. “ROC-AUC” is not one number — these three are computed from the same scores and answer different questions.</p>
+      <div class="metric" data-bar-col="1" data-sub-col="2">
+        <div class="seg" role="tablist" aria-label="View">
+          <button type="button" role="tab" aria-selected="true" data-view="bars">Pooled</button>
+          <button type="button" role="tab" aria-selected="false" data-view="table">All three</button>
+        </div>
+        <div class="bars" data-view-panel="bars"></div>
+        <div data-view-panel="table" hidden>
+          <div class="tbl-wrap">
+            <table>
+              <thead><tr><th scope="col">Method</th><th scope="col">Pooled cell-day</th><th scope="col">Mean daily cross-sectional</th><th scope="col">Mean per-cell temporal</th></tr></thead>
+              <tbody>
+                <tr><td>GLM-Logit</td><td class="n best">0.9090</td><td class="n best">0.8614</td><td class="n best">0.7373</td></tr>
+                <tr><td>HierBayes</td><td class="n">0.9080</td><td class="n">0.8598</td><td class="n">0.7333</td></tr>
+                <tr><td>B2: Recent MA</td><td class="n">0.8839</td><td class="n">0.8012</td><td class="n">0.6932</td></tr>
+                <tr><td>Extra Trees</td><td class="n">0.8831</td><td class="n">0.8237</td><td class="n">0.7057</td></tr>
+                <tr><td>B5: B2+B3</td><td class="n">0.8436</td><td class="n">0.8352</td><td class="n">0.5497</td></tr>
+                <tr><td>TTM (IBM Granite)</td><td class="n">0.8415</td><td class="n">0.8311</td><td class="n">0.6178</td></tr>
+                <tr><td>B3: DoY season</td><td class="n">0.8327</td><td class="n">0.7763</td><td class="n">0.6631</td></tr>
+                <tr><td>B1: Static prior</td><td class="n">0.8269</td><td class="n">0.8492</td><td class="n">0.5000</td></tr>
+                <tr><td>B4: B1+B3</td><td class="n">0.8183</td><td class="n">0.8410</td><td class="n">0.4994</td></tr>
+                <tr><td>B0: Random</td><td class="n">0.4960</td><td class="n">0.4857</td><td class="n">0.5022</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="swipe-hint">← swipe the table →</p>
+        </div>
+      </div>
+      <p class="tnote">Highlighted values mark the highest in each column. <strong>Pooled</strong> ranks all 52,560 cell-days at once. <strong>Daily cross-sectional</strong> ranks the 144 cells within each day and takes the unweighted mean over the 213 days with a mixed outcome — the closest of the three to the patrol decision. <strong>Per-cell temporal</strong> ranks the 365 days within each cell, an unweighted mean over the 90 cells that had both outcomes; it measures a different task from the one this benchmark scores.</p>
+      <div class="callout">
+        <strong>Two readings that only appear once the definitions are separated.</strong>
+        The static prior's pooled AUC of 0.827, despite having no temporal variation at all, illustrates that pooled cell-day AUC can be high without any ability to rank days within a cell — where it scores exactly 0.500. And Extra Trees exceeds TTM under pooled ROC-AUC (0.883 vs 0.842) while ranking below it on Recall@20 (0.474 vs 0.492). Which method looks better depends on the metric, which is the paper's argument for choosing the metric from the decision rather than from convention.
+      </div>
+    </div>
+  </details>
+
+  <!-- ── Retrospective comparison ─────────────────────────────────────── -->
+  <details class="acc">
+    <summary>
+      <span class="s-txt"><b>Retrospective comparison</b><span>Held-out 2025 sighting reports · 10 methods</span></span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </summary>
+    <div class="body">
+      <p class="lead">For each of the ten methods with released or deterministically regenerated 2025 cell-day score matrices, the repository publishes the predicted top-20 cells beside the cells that actually reported a sighting, decomposed into true positives, false positives and false negatives, with the pairwise top-20 agreement between methods. This produces 3,650 method-day rows per prefecture in <code>results/daily_diagnostics_&lt;pref&gt;_2025.csv</code>.</p>
+      <p class="lead">The cases below are selected automatically by the stated deterministic criteria rather than manually chosen for favourable visual appearance. The set intentionally includes both low-performing and relatively favourable cases.</p>
+      <div class="cases">
+        <div class="case">
+          <div class="crit">Most sightings in 2025</div>
+          <div class="date">2025-10-15</div>
+          <div class="grid">
+            <div class="kv"><div class="k">Sighting cells</div><div class="v">30</div></div>
+            <div class="kv"><div class="k">GLM-Logit R@20</div><div class="v">0.467</div></div>
+            <div class="kv"><div class="k">Static prior R@20</div><div class="v">0.433</div></div>
+            <div class="kv"><div class="k">Jaccard@20 GLM/ET</div><div class="v">0.538</div></div>
+          </div>
+        </div>
+        <div class="case">
+          <div class="crit">Median GLM-Logit Recall@20</div>
+          <div class="date">2025-06-27</div>
+          <div class="grid">
+            <div class="kv"><div class="k">Sighting cells</div><div class="v">19</div></div>
+            <div class="kv"><div class="k">GLM-Logit R@20</div><div class="v">0.526</div></div>
+            <div class="kv"><div class="k">Static prior R@20</div><div class="v">0.526</div></div>
+            <div class="kv"><div class="k">Jaccard@20 GLM/ET</div><div class="v">0.481</div></div>
+          </div>
+        </div>
+        <div class="case">
+          <div class="crit">Lowest GLM-Logit Recall@20</div>
+          <div class="date">2025-01-01</div>
+          <div class="grid">
+            <div class="kv"><div class="k">Sighting cells</div><div class="v">1</div></div>
+            <div class="kv"><div class="k">GLM-Logit R@20</div><div class="v warn">0.000</div></div>
+            <div class="kv"><div class="k">Static prior R@20</div><div class="v">1.000</div></div>
+            <div class="kv"><div class="k">Jaccard@20 GLM/ET</div><div class="v">0.739</div></div>
+          </div>
+        </div>
+        <div class="case">
+          <div class="crit">Largest GLM-Logit − static-prior gap</div>
+          <div class="date">2025-06-24</div>
+          <div class="grid">
+            <div class="kv"><div class="k">Sighting cells</div><div class="v">6</div></div>
+            <div class="kv"><div class="k">GLM-Logit R@20</div><div class="v">0.833</div></div>
+            <div class="kv"><div class="k">Static prior R@20</div><div class="v">0.333</div></div>
+            <div class="kv"><div class="k">Jaccard@20 GLM/ET</div><div class="v">0.481</div></div>
+          </div>
+        </div>
+        <div class="case">
+          <div class="crit">Lowest GLM-Logit vs ET agreement</div>
+          <div class="date">2025-07-09</div>
+          <div class="grid">
+            <div class="kv"><div class="k">Sighting cells</div><div class="v">10</div></div>
+            <div class="kv"><div class="k">GLM-Logit R@20</div><div class="v">0.700</div></div>
+            <div class="kv"><div class="k">Static prior R@20</div><div class="v">0.800</div></div>
+            <div class="kv"><div class="k">Jaccard@20 GLM/ET</div><div class="v warn">0.379</div></div>
+          </div>
+        </div>
+      </div>
+      <p class="tnote">Highlighted values identify the metric that triggered each deterministic selection criterion; they do not necessarily indicate model failure. On 2025-01-01, the single cell that reported a sighting was outside GLM-Logit's top 20 but inside the static prior's top 20. On a one-sighting day, Recall@20 is binary — either 0 or 1 — and is therefore highly sensitive to the rank of a single cell. It should not be treated as a stable estimate of overall model performance. On the highest-volume day, GLM-Logit and the static prior differ by only one captured sighting within the top-20 budget (14 versus 13 of 30). This is a single diagnostic case and does not establish a general relationship between sighting volume and model agreement.</p>
+      <div class="callout nogo">
+        <strong>What this is not.</strong> These are predictions compared retrospectively against held-out records. KumaWatch has not been evaluated in operation: no patrol routes, deployment period, control municipality or staff-decision records exist in this dataset, so no claim is made about patrol efficiency, injuries avoided or capture rates. Downstream uses of HierBayes posterior variance and of the Extra Trees environmental covariates are untested rather than refuted.
+      </div>
+    </div>
+  </details>
+
+  <!-- ── Headline summary ─────────────────────────────────────────────── -->
+  <details class="acc">
+    <summary>
+      <span class="s-txt"><b>Benchmark result summary</b><span>Yamagata, primary setting</span></span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </summary>
+    <div class="body">
+      <dl class="dl">
+        <div><dt>GLM-Logit</dt><dd>Highest Recall@20 (0.547) among all eleven benchmarked methods, and highest Precision@20 (0.245) among the ten covered by these supplementary diagnostics. Its Recall@20 margin over the static prior is +0.014 and does not approach significance (<em>p</em> = 0.158), while the inexpensive seasonal baseline B5 is only 0.0009 behind on Precision@20. On Recall@20, the static prior — a method with no model, no features and no daily computation — is statistically indistinguishable from GLM-Logit in this setting.</dd></div>
+        <div><dt>HierBayes</dt><dd>Recall@20 = 0.542; no improvement over GLM-Logit on Yamagata (<em>p</em> = 0.621) at roughly sixty times the runtime. Posterior-uncertainty applications were not evaluated.</dd></div>
+        <div><dt>TTM</dt><dd>Significantly worse than the static prior on Yamagata (Δ = −0.041, <em>p</em> = 0.0004), at about four hours of API inference per day. On Akita it also trails, but not significantly (Δ = −0.010, <em>p</em> = 0.364).</dd></div>
+        <div><dt>Extra Trees</dt><dd>At Recall@20, Extra Trees underperforms the other non-ablation learned methods and is strongly miscalibrated (Brier Skill Score = −1.63). It nevertheless exceeds TTM under pooled ROC-AUC, illustrating that model ordering depends on the evaluation metric. Cross-method disagreement is not evidence of useful complementarity.</dd></div>
+      </dl>
+    </div>
+  </details>
+
+  <!-- ── Reproduction ─────────────────────────────────────────────────── -->
+  <details class="acc">
+    <summary>
+      <span class="s-txt"><b>Reproducing these figures</b><span>One script per group of numbers</span></span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </summary>
+    <div class="body">
+      <dl class="dl">
+        <div><dt>Environment</dt><dd><code>pip install -r requirements-diagnostics.txt</code></dd></div>
+        <div><dt>Supplementary Precision, ROC-AUC and daily case tables</dt><dd><code>python scripts/daily_diagnostics.py</code></dd></div>
+        <div><dt>Published significance tests (Δ, 95% CI, permutation <em>p</em>)</dt><dd><code>python scripts/table2_significance.py</code></dd></div>
+        <div><dt>Calibration metrics (Brier, Brier Skill Score)</dt><dd><code>python scripts/calibration_validation.py</code></dd></div>
+        <div><dt>Cross-method top-K agreement (Jaccard@K)</dt><dd><code>python scripts/crosslayer_jaccard.py --check</code></dd></div>
+        <div><dt>This mobile build</dt><dd><code>python tools/build_data.py</code> — re-extracts the daily score matrices from the desktop map into <code>data/yamagata_2025.json</code>.</dd></div>
+      </dl>
+    </div>
+  </details>
+
+  <div class="foot">
+    Mobile edition of the <a href="https://global-jogasaki.github.io/KumaWatch/" target="_blank" rel="noopener">KumaWatch project page</a>. Same numbers, same released score matrices.<br>
+    Data: Yamagata &amp; Akita prefectural wildlife observation databases (public) ·
+    Code: <a href="https://github.com/Global-jogasaki/KumaWatch" target="_blank" rel="noopener">Apache 2.0</a> ·
+    Data: <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a><br>
+    Author: Hiroshi Jogasaki — <em>Accepted as a short paper in the Applications Track of ACM SIGSPATIAL 2026; camera-ready version in preparation.</em>
+  </div>
+
+</div>
+
+<nav class="actionbar">
+  <a class="btn" href="map.html">🗺️ Open the benchmark map</a>
+  <button class="top" type="button" id="to-top" aria-label="Back to top">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+</nav>
+
+<script src="assets/index.js" defer></script>
+</body>
+</html>
