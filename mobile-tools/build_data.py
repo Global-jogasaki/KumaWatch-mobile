@@ -11,6 +11,12 @@ repeated cell-id keys.
 Values are copied verbatim — no rounding, no re-scaling — so the mobile map
 ranks cells exactly as the published map does.
 
+Two files are written side by side: the JSON the site fetches over HTTP, and
+an identical payload wrapped in a ``window.__kwDataRaw = ...`` assignment. The
+second exists only for opening the copied folder straight from disk, where
+``fetch()`` of a local file is blocked by the browser but a ``<script>`` tag
+still loads.
+
 Usage:
     python mobile-tools/build_data.py [SOURCE_HTML] [-o mobile-data/yamagata_2025.json]
 """
@@ -83,11 +89,15 @@ def main(argv: list[str]) -> int:
     text = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
     out.write_text(text, encoding="utf-8")
 
+    fallback = out.with_suffix(".js")
+    fallback.write_text("window.__kwDataRaw = " + text + ";\n", encoding="utf-8")
+
     raw = len(text.encode("utf-8"))
     gz = len(gzip.compress(text.encode("utf-8"), 9))
     print(f"{out}: {len(payload['gids'])} cells x {len(payload['dates'])} days")
     print(f"  {raw/1e6:.2f} MB raw, {gz/1e3:.0f} kB gzipped "
           f"(source HTML {src.stat().st_size/1e6:.2f} MB)")
+    print(f"{fallback}: file:// fallback for the same payload")
     return 0
 
 

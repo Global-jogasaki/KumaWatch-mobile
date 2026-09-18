@@ -46,6 +46,7 @@ mobile-assets/
   map.css    map.js        # map screen
 mobile-data/
   yamagata_2025.json       # 144 cells x 365 days x 5 series (glm, hb, ttm, et, actual)
+  yamagata_2025.js         # same payload as a <script> tag, for file:// use
 mobile-icons/              # SVG favicon + PNG home-screen icons
 manifest.webmanifest       # installable web app
 sw.js                      # offline cache (shell + scores + Leaflet)
@@ -79,6 +80,15 @@ open http://localhost:8000/
 
 The map needs Leaflet 1.9.4 and OpenStreetMap tiles from the network on first load; afterwards the
 service worker serves the shell and the scores offline.
+
+### From a copied folder, without a server
+
+Copy the whole folder anywhere and open `index.html` directly — double-clicking it works. Browsers
+block `fetch()` of a local file, so on `file://` the scores are pulled in through
+`mobile-data/yamagata_2025.js` (the same payload, wrapped in a `<script>` assignment) instead of the
+JSON. Everything but the basemap works offline this way; Leaflet and the OpenStreetMap tiles still
+come from the network, so without a connection the grid, ranking and detail panel render over an
+empty background. Service workers do not run on `file://`, which is expected and harmless.
 
 ## Tests
 

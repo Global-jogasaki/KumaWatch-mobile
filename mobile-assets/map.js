@@ -596,10 +596,12 @@
       fail('地図ライブラリ (Leaflet) を読み込めませんでした。<br><span class="small">オフラインの場合は接続を確認してください。</span>');
       return;
     }
-    var pending = window.__kwData || fetch(DATA_URL).then(function (r) {
-      if (!r.ok) throw new Error(r.status);
-      return r.json();
-    });
+    var pending = window.__kwDataRaw
+      ? Promise.resolve(window.__kwDataRaw)          // file://, via <script>
+      : window.__kwData || fetch(DATA_URL).then(function (r) {
+          if (!r.ok) throw new Error(r.status);
+          return r.json();
+        });
     window.__kwData = null;
     pending
       .then(function (payload) {
@@ -619,7 +621,9 @@
       })
       .catch(function () {
         window.__kwData = null;
-        fail('予測データを読み込めませんでした。<br><span class="small">通信状況を確認して再試行してください。</span>');
+        fail(location.protocol === 'file:'
+          ? '予測データを読み込めませんでした。<br><span class="small">mobile-data/yamagata_2025.js がフォルダ内にあるか確認してください。</span>'
+          : '予測データを読み込めませんでした。<br><span class="small">通信状況を確認して再試行してください。</span>');
       });
   }
 

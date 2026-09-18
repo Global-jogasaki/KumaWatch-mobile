@@ -229,6 +229,13 @@ function check(name, ok, detail) {
   check('320px: map screen fits the viewport', narrowMap <= 0, `${narrowMap}px`);
   if (SHOTS) await page.screenshot({ path: path.join(SHOTS, 'map-320.png') });
 
+  /* ── opened straight from disk (a copied folder, no web server) ────── */
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('file://' + path.join(ROOT, 'map.html'));
+  await page.waitForSelector('#loader', { state: 'hidden', timeout: 15000 });
+  const fileRows = await page.locator('#rank-list .rank-row').count();
+  check('file://: map works without a web server', fileRows === 20, `${fileRows} rows`);
+
   check('no console errors', errors.length === 0, errors.slice(0, 3).join(' | '));
 
   await browser.close();
