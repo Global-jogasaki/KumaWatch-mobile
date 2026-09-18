@@ -3,8 +3,9 @@
  * A phone in the mountains is exactly where this map is useful and exactly
  * where the network is not, so the shell, the 2025 score matrices and the
  * Leaflet bundle are all kept locally after the first visit. Map tiles are
- * deliberately NOT cached: they are third-party, unbounded in number, and
- * OpenStreetMap's tile usage policy asks clients not to bulk-store them.
+ * deliberately NOT cached: they are third-party and unbounded in number, and
+ * bulk-storing a public tile service is what its usage terms ask clients not
+ * to do.
  */
 var VERSION = 'kw-mobile-v2';   // bumped when the asset paths changed
 
@@ -53,7 +54,7 @@ self.addEventListener('fetch', function (e) {
   if (req.method !== 'GET') return;
 
   var url = new URL(req.url);
-  if (url.hostname.indexOf('tile.openstreetmap.org') >= 0) return;   // never cached
+  if (url.hostname.indexOf('cyberjapandata.gsi.go.jp') >= 0) return;   // never cached
 
   /* Same-origin pages: network first, so a republished site is picked up on
      the next online visit; cache is the offline fallback. */

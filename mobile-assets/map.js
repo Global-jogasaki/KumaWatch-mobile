@@ -195,9 +195,16 @@
       zoomSnap: 0.25,
       maxZoom: 16
     });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 18
+    /* 地理院タイル(国土地理院・淡色地図)。OpenStreetMap のボランティア運営
+       タイルサーバーは Referer を持たない file:// からの取得を 403 で拒否する
+       ため(タイル利用ポリシー)、コピーしたフォルダから開いても背景が出る
+       こちらを使う。日本国内の地名表記も密度が高く、リスク色の下敷きとして
+       淡色地図の方が読みやすい。出典表示は利用規約上の必須事項。 */
+    L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+      attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">地理院タイル</a>',
+      minZoom: 5,
+      maxZoom: 18,
+      maxNativeZoom: 18
     }).addTo(map);
     map.attributionControl.setPrefix('');
 

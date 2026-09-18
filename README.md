@@ -27,6 +27,7 @@ ACM SIGSPATIAL 2026, Applications Track (short paper).
 | Tables | wide tables in a scroll box | ranked bar view by default, full table one tap away, first column pinned while scrolling |
 | Viewport | fixed `100vh` | `100dvh` + `env(safe-area-inset-*)` — correct under the notch, the home indicator and Safari's collapsing URL bar |
 | Offline | none | service worker caches the shell, the scores and Leaflet (map tiles are deliberately **not** cached) |
+| Basemap | OpenStreetMap tiles | 地理院タイル (GSI, 淡色地図) — OSM's volunteer tile servers answer 403 to a page opened from `file://`, which a copied folder always is |
 | Home screen | none | web app manifest + `apple-touch-icon`, standalone display, iOS "Add to Home Screen" hint |
 | Sharing a view | none | `map.html?d=2025-10-15&l=glm&k=20` — day, layer and budget live in the URL |
 | Location | none | 現在地ボタン: shows the device position and opens the containing grid cell |
@@ -78,15 +79,15 @@ python -m http.server 8000     # any static server; the pages are plain files
 open http://localhost:8000/
 ```
 
-The map needs Leaflet 1.9.4 and OpenStreetMap tiles from the network on first load; afterwards the
-service worker serves the shell and the scores offline.
+The map needs Leaflet 1.9.4 and 地理院タイル (GSI) basemap tiles from the network on first load;
+afterwards the service worker serves the shell and the scores offline.
 
 ### From a copied folder, without a server
 
 Copy the whole folder anywhere and open `index.html` directly — double-clicking it works. Browsers
 block `fetch()` of a local file, so on `file://` the scores are pulled in through
 `mobile-data/yamagata_2025.js` (the same payload, wrapped in a `<script>` assignment) instead of the
-JSON. Everything but the basemap works offline this way; Leaflet and the OpenStreetMap tiles still
+JSON. Everything but the basemap works offline this way; Leaflet and the 地理院タイル basemap still
 come from the network, so without a connection the grid, ranking and detail panel render over an
 empty background. Service workers do not run on `file://`, which is expected and harmless.
 
@@ -111,4 +112,6 @@ Settings → Pages → Branch: `main` / `(root)`.
 
 Code: Apache License 2.0 (see `LICENSE`).
 Data: CC BY 4.0 — Yamagata & Akita prefectural wildlife observation databases (public).
+Basemap: 地理院タイル (Geospatial Information Authority of Japan), shown with the attribution its
+terms of use require.
 Author: Hiroshi Jogasaki.

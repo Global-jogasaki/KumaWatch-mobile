@@ -70,7 +70,16 @@ function check(name, ok, detail) {
     r.fulfill({ contentType: 'text/javascript', body: stub }));
   await context.route('**/unpkg.com/**/leaflet.css', r =>
     r.fulfill({ contentType: 'text/css', body: '.leaflet-container{position:relative}' }));
-  await context.route('**tile.openstreetmap.org/**', r => r.abort());
+  /* Basemap tiles: answered with a 1x1 PNG so the test needs no network, and
+     counted so a regression back to a blocked tile host is caught. */
+  const tileHosts = new Set();
+  const BLANK_PNG = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+    'base64');
+  await context.route(/tile|xyz\/pale/, r => {
+    tileHosts.add(new URL(r.request().url()).hostname);
+    return r.fulfill({ contentType: 'image/png', body: BLANK_PNG });
+  });
 
   const page = await context.newPage();
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
@@ -235,6 +244,10 @@ function check(name, ok, detail) {
   await page.waitForSelector('#loader', { state: 'hidden', timeout: 15000 });
   const fileRows = await page.locator('#rank-list .rank-row').count();
   check('file://: map works without a web server', fileRows === 20, `${fileRows} rows`);
+
+  check('basemap uses 地理院タイル (GSI), not a tile host that blocks file://',
+    tileHosts.size > 0 && [...tileHosts].every(h => h === 'cyberjapandata.gsi.go.jp'),
+    [...tileHosts].join(', ') || 'no tile requested');
 
   check('no console errors', errors.length === 0, errors.slice(0, 3).join(' | '));
 

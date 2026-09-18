@@ -106,7 +106,14 @@
 
   global.L = {
     map: function (id, opts) { theMap = new MapStub(id, opts); return theMap; },
-    tileLayer: function () { return { addTo: function () { return this; } }; },
+    tileLayer: function (url) {
+      /* Not drawn, but one tile is requested so the test can assert which
+         basemap host the app actually asks for. */
+      var probe = url.replace('{s}', 'a').replace('{z}', '8')
+        .replace('{x}', '226').replace('{y}', '100');
+      try { fetch(probe, { mode: 'no-cors' }).catch(function () {}); } catch (e) { /* ignore */ }
+      return { addTo: function () { return this; } };
+    },
     rectangle: function (b) { return new Rect(b); },
     marker: function (ll, o) { return new Marker(ll, o); },
     divIcon: function (o) { return { options: o }; },
