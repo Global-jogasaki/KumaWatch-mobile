@@ -38,6 +38,48 @@ function serve() {
   });
 }
 
+/* Pull the default-language strings out of a page the same way the runtime
+   does, so the markup and the dictionary can be compared without a browser. */
+function markupStrings(html) {
+  const out = {};
+  const re = /data-i18n(-html|-aria)?="([^"]+)"/g;
+  let m;
+  while ((m = re.exec(html))) {
+    const [, kind, key] = m;
+    const start = html.lastIndexOf('<', m.index);
+    const tag = /^<([a-zA-Z0-9]+)/.exec(html.slice(start))[1];
+    const openEnd = html.indexOf('>', m.index + m[0].length);
+    let val;
+    if (kind === '-aria') {
+      val = /aria-label="([^"]*)"/.exec(html.slice(start, openEnd + 1))[1];
+    } else {
+      let depth = 1, i = openEnd + 1, close = -1;
+      const tagRe = new RegExp('<(/?)' + tag + '[\\s>/]', 'g');
+      tagRe.lastIndex = i;
+      let t;
+      while ((t = tagRe.exec(html))) {
+        depth += t[1] ? -1 : 1;
+        if (!depth) { close = t.index; break; }
+      }
+      val = html.slice(openEnd + 1, close);
+    }
+    out[key] = val.replace(/\s+/g, ' ').trim();
+  }
+  return out;
+}
+
+/* Evaluate a strings-*.js file outside the browser. */
+function loadDict(file) {
+  const dict = { en: {}, ja: {} };
+  const KW = {
+    addStrings(add) {
+      for (const lang of Object.keys(add)) Object.assign(dict[lang], add[lang]);
+    }
+  };
+  new Function('KW', fs.readFileSync(file, 'utf8'))(KW);
+  return dict;
+}
+
 const checks = [];
 function check(name, ok, detail) {
   checks.push({ name, ok, detail });
@@ -84,6 +126,24 @@ function check(name, ok, detail) {
   const page = await context.newPage();
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
 
+  /* ── dictionaries agree with the markup they replace ───────────────── */
+  for (const [page, file, lang] of [
+    ['index.html', 'strings-index.js', 'en'],
+    ['map.html', 'strings-map.js', 'ja'],
+  ]) {
+    const inMarkup = markupStrings(fs.readFileSync(path.join(ROOT, page), 'utf8'));
+    const dict = loadDict(path.join(ROOT, 'mobile-assets', file));
+    const drift = Object.entries(inMarkup)
+      .filter(([k, v]) => dict[lang][k] !== v)
+      .map(([k]) => k);
+    const untranslated = Object.keys(inMarkup)
+      .filter(k => dict[lang === 'en' ? 'ja' : 'en'][k] === undefined);
+    check(`${page}: markup matches the ${lang} dictionary`, drift.length === 0,
+      drift.slice(0, 3).join(', '));
+    check(`${page}: every key is translated`, untranslated.length === 0,
+      untranslated.slice(0, 3).join(', '));
+  }
+
   /* ── landing page ──────────────────────────────────────────────────── */
   await page.goto(`${base}/index.html`, { waitUntil: 'networkidle' });
   check('index: title', (await page.title()).includes('KumaWatch'));
@@ -104,6 +164,25 @@ function check(name, ok, detail) {
   check('index: table view reachable in one tap',
     await m0.locator('.tbl-wrap').isVisible() && !(await m0.locator('.bars').isVisible()));
   await m0.locator('.seg button[data-view="bars"]').tap();
+
+  /* Language switch: the header control rewrites the page in place. */
+  await page.locator('.lang button[data-lang="ja"]').tap();
+  await page.waitForTimeout(150);
+  const jaHero = await page.locator('.hero .sub').innerText();
+  check('index: switches to Japanese from the header',
+    jaHero.includes('野生動物遭遇予測') && (await page.getAttribute('html', 'lang')) === 'ja',
+    jaHero.slice(0, 28));
+  const jaMethod = await page.locator('.metric table tbody tr td').first().innerText();
+  check('index: table and bar view follow the switch', jaMethod === 'GLM-Logit' &&
+    (await page.locator('.metric .bar-row').first().innerText()).includes('0.5470'));
+  const jaB1 = await page.locator('.metric table tbody tr:nth-child(4) td').first().innerText();
+  check('index: baseline names are translated too', jaB1 === 'B1: 静的事前確率', jaB1);
+  check('index: numbers are untouched by the switch',
+    (await page.locator('.metric table tbody tr td.n').first().innerText()) === '0.3448');
+  await page.locator('.lang button[data-lang="en"]').tap();
+  await page.waitForTimeout(150);
+  check('index: switches back to English',
+    (await page.locator('.hero .sub').innerText()).includes('Benchmarking Wildlife'));
 
   const overflow = await page.evaluate(() =>
     document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -132,7 +211,7 @@ function check(name, ok, detail) {
   if (SHOTS) await page.screenshot({ path: path.join(SHOTS, 'index.png'), fullPage: false });
 
   /* ── map ───────────────────────────────────────────────────────────── */
-  await page.goto(`${base}/map.html?d=2025-10-15&l=glm&k=20`, { waitUntil: 'networkidle' });
+  await page.goto(`${base}/map.html?d=2025-10-15&l=glm&k=20&lang=ja`, { waitUntil: 'networkidle' });
   try {
     await page.waitForSelector('#loader', { state: 'hidden', timeout: 15000 });
     check('map: data loaded, loader dismissed', true);
@@ -244,6 +323,44 @@ function check(name, ok, detail) {
   await page.waitForSelector('#loader', { state: 'hidden', timeout: 15000 });
   const fileRows = await page.locator('#rank-list .rank-row').count();
   check('file://: map works without a web server', fileRows === 20, `${fileRows} rows`);
+
+  /* ── language on the map screen, and across a navigation ───────────── */
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${base}/map.html?d=2025-10-15&lang=en`, { waitUntil: 'networkidle' });
+  await page.waitForSelector('#loader', { state: 'hidden', timeout: 15000 });
+  check('map: opens in the language the URL asks for',
+    (await page.locator('#tb-layer').innerText()) === 'GLM-Logit score',
+    await page.locator('#tb-layer').innerText());
+  check('map: runtime strings follow the language',
+    (await page.locator('#leg-0').innerText()).startsWith('Critical') &&
+    (await page.locator('#play-btn').innerText()).includes('Play'),
+    await page.locator('#leg-0').innerText());
+  check('map: month rail is translated',
+    (await page.locator('#month-rail .chip').first().innerText()) === 'Jan');
+
+  await page.locator('#rank-list .rank-row').first().tap();
+  check('map: detail panel is translated',
+    (await page.locator('#dp-rank').innerText()).startsWith('Rank 1 of'),
+    await page.locator('#dp-rank').innerText());
+  await page.locator('#detail-back').tap();
+
+  await page.locator('.lang button[data-lang="ja"]').tap();
+  await page.waitForTimeout(200);
+  check('map: switches to Japanese without reloading',
+    (await page.locator('#tb-layer').innerText()) === 'GLM-Logit スコア' &&
+    (await page.locator('#month-rail .chip').first().innerText()) === '1月');
+  check('map: the day stays put across the switch',
+    (await page.locator('#date-display').innerText()) === '2025-10-15');
+
+  /* The choice is remembered when moving between the two pages. */
+  await page.goto(`${base}/index.html`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(150);
+  check('the language choice carries across pages',
+    (await page.locator('.hero .sub').innerText()).includes('野生動物遭遇予測'));
+  await page.locator('.lang button[data-lang="en"]').tap();
+
+  await page.goto(`${base}/map.html`, { waitUntil: 'networkidle' });
+  await page.waitForSelector('#loader', { state: 'hidden', timeout: 15000 });
 
   check('basemap uses 地理院タイル (GSI), not a tile host that blocks file://',
     tileHosts.size > 0 && [...tileHosts].every(h => h === 'cyberjapandata.gsi.go.jp'),

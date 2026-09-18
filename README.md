@@ -31,6 +31,7 @@ ACM SIGSPATIAL 2026, Applications Track (short paper).
 | Home screen | none | web app manifest + `apple-touch-icon`, standalone display, iOS "Add to Home Screen" hint |
 | Sharing a view | none | `map.html?d=2025-10-15&l=glm&k=20` — day, layer and budget live in the URL |
 | Location | none | 現在地ボタン: shows the device position and opens the containing grid cell |
+| Language | landing page English, map Japanese | both pages in both languages, switched from the header (日本語 / EN), remembered across pages and carried in the URL |
 
 Behaviour that is intentionally **unchanged**: the tier thresholds (GLM-Logit and HierBayes are cut on the
 predicted probability, TTM and Extra Trees on the cell's rank that day, because their raw scores are not
@@ -43,6 +44,9 @@ index.html                 # landing page — benchmark tables, mobile-first
 map.html                   # map screen — Leaflet + bottom sheet
 mobile-assets/
   base.css                 # shared tokens (colour, spacing, safe areas, tap size)
+  i18n.js                  # language switch: dictionary lookup + data-i18n binding
+  strings-index.js         # landing-page strings, en + ja
+  strings-map.js           # map-screen strings, en + ja
   index.css  index.js      # landing page
   map.css    map.js        # map screen
 mobile-data/
@@ -56,6 +60,18 @@ mobile-tools/
   make_icons.py            # rasterise the home-screen icons (no image dependencies)
   test/smoke.js            # headless iPhone-sized smoke test
 ```
+
+## Languages
+
+Both pages exist in Japanese and English and switch in place from the control in the header. The choice
+is kept in `localStorage`, so it carries from one page to the other, and written to the URL
+(`?lang=ja`), so a shared link opens in the language it was shared in. With no choice stored, the
+browser's own language decides.
+
+Text lives in `mobile-assets/strings-*.js`, once per language. **No number from the paper appears in a
+dictionary** — every metric stays in the markup, so a value cannot say one thing in Japanese and
+something else in English. The smoke test enforces both halves of that contract: the markup must match
+its page's default-language dictionary word for word, and every key must exist in both languages.
 
 ## Data provenance
 

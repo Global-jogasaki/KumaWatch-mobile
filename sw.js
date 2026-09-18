@@ -7,13 +7,16 @@
  * bulk-storing a public tile service is what its usage terms ask clients not
  * to do.
  */
-var VERSION = 'kw-mobile-v2';   // bumped when the asset paths changed
+var VERSION = 'kw-mobile-v3';   // bumped whenever the precache list changes
 
 var SHELL = [
   './',
   './index.html',
   './map.html',
   './mobile-assets/base.css',
+  './mobile-assets/i18n.js',
+  './mobile-assets/strings-index.js',
+  './mobile-assets/strings-map.js',
   './mobile-assets/index.css',
   './mobile-assets/map.css',
   './mobile-assets/index.js',

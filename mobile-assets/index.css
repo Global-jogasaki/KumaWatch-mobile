@@ -21,13 +21,19 @@ body {
 .topbar .name { font-size: 15px; font-weight: 800; color: var(--text-hi); letter-spacing: -.01em; }
 .topbar .spacer { flex: 1; }
 .topbar .go {
-  display: inline-flex; align-items: center; gap: 5px;
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
   min-height: 34px; padding: 0 12px;
   background: var(--accent-dk); border: 1px solid #3a8046;
   border-radius: 999px; color: #c0ecd0;
   font-size: 13px; font-weight: 700; text-decoration: none;
 }
 .topbar .go:active { background: #2a6840; }
+
+/* On the narrowest phones the language switch and the map button take
+   priority over the wordmark; the bear stays as the identifier. */
+@media (max-width: 379px) {
+  .topbar .name { display: none; }
+}
 
 /* ── page shell ─────────────────────────────────────────────────────────── */
 .wrap { padding: 0 var(--gut-r) 0 var(--gut-l); max-width: 760px; margin: 0 auto; }
@@ -58,7 +64,7 @@ body {
 }
 .stat-lbl {
   font-size: .68rem; color: var(--muted-2); line-height: 1.45;
-  letter-spacing: .04em; text-transform: uppercase; margin-top: 3px;
+  letter-spacing: .04em; margin-top: 3px;
 }
 
 /* ── buttons ────────────────────────────────────────────────────────────── */

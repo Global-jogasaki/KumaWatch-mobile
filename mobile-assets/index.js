@@ -7,7 +7,7 @@
   'use strict';
 
   /* ── compact bar view, built from each table ──────────────────────────── */
-  document.querySelectorAll('.metric').forEach(function (metric) {
+  function buildBars(metric) {
     var table = metric.querySelector('table');
     var host = metric.querySelector('[data-view-panel="bars"]');
     if (!table || !host) return;
@@ -42,8 +42,15 @@
              sub + '</div>';
     }).join('');
 
-    /* The bar view answers "which method wins?"; the table answers "by how
-       much, on every budget?". Both stay one tap apart. */
+  }
+
+  var metrics = [].slice.call(document.querySelectorAll('.metric'));
+  /* Method names and headers are translated first; the bars read them. */
+  KW.ready.then(function () { metrics.forEach(buildBars); });
+
+  /* The bar view answers "which method wins?"; the table answers "by how
+     much, on every budget?". Both stay one tap apart. */
+  metrics.forEach(function (metric) {
     metric.querySelectorAll('.seg button').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var want = btn.dataset.view;
@@ -56,6 +63,10 @@
       });
     });
   });
+
+  /* Method names and column headers come from the table, so switching the
+     language means re-deriving the bars from the freshly translated rows. */
+  document.addEventListener('kw:lang', function () { metrics.forEach(buildBars); });
 
   /* ── fade the swipe hint once the table has actually been swiped ──────── */
   document.querySelectorAll('.tbl-wrap').forEach(function (wrap) {

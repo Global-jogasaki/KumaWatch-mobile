@@ -16,18 +16,12 @@
   /* Column order inside data.daily[day] — see mobile-tools/build_data.py. */
   var COL = { glm: 0, hb: 1, ttm: 2, et: 3, act: 4 };
 
-  var LAYER_NAMES = {
-    glm: 'GLM-Logit スコア',
-    hb: 'HierBayes 事後平均',
-    ttm: 'TTM スコア',
-    et: 'Extra Trees スコア'
-  };
-  var LAYER_NOTES = {
-    glm: '主層。ロジスティック回帰による較正済み予測確率。論文の主結果 (Recall@20 = 0.547)。',
-    hb: '不確実性層。階層ベイズの事後平均。GLM-Logit との差は有意ではない (p = 0.621)。',
-    ttm: '補完層。IBM Granite TTM の生スコア。確率として較正されていない。',
-    et: '補完層。Extra Trees の生スコア。強く誤較正されている (Brier Skill Score = −1.63)。'
-  };
+  var LAYERS = { glm: 1, hb: 1, ttm: 1, et: 1 };
+
+  /* Every user-visible string comes from strings-map.js through KW.t, so the
+     language switch needs no second copy of this file. */
+  var t = function (key, vars) { return KW.t(key, vars); };
+  function layerName(l) { return t('map.layerName.' + l); }
 
   /* GLM-Logit and HierBayes emit calibrated probabilities, so their tiers cut
      on the probability itself. TTM and Extra Trees do not — dressing their raw
@@ -42,9 +36,6 @@
     { cls: 't-mid', color: '#e0b800' },
     { cls: 't-low', color: '#28a030' }
   ];
-  var TIER_LABEL_PROB = ['緊急', '高危険', '警戒', '注意'];
-  var TIER_LABEL_RANK = ['上位5', '上位10', '上位20', 'それ以外'];
-  var DOW = ['日', '月', '火', '水', '木', '金', '土'];
 
   var D = null;                 // payload from mobile-data/yamagata_2025.json
   var idx = 0;                  // current day index
@@ -72,12 +63,10 @@
   }
   function tierInfo(rank, value) {
     var i = tierOf(rank, value);
-    return {
-      level: i,
-      label: PROB_LAYERS[layer] ? TIER_LABEL_PROB[i] : TIER_LABEL_RANK[i],
-      cls: TIER[i].cls,
-      color: TIER[i].color
-    };
+    var label = PROB_LAYERS[layer]
+      ? t('map.tier.prob.' + i)
+      : (i < 3 ? t('map.tier.rank.top', { n: RANK_TIERS[i] }) : t('map.tier.rank.other'));
+    return { level: i, label: label, cls: TIER[i].cls, color: TIER[i].color };
   }
   function fmtScore(v) { return PROB_LAYERS[layer] ? (v * 100).toFixed(1) + '%' : v.toFixed(3); }
   function scores(dayIdx, which) { return D.daily[dayIdx][COL[which]]; }
@@ -290,9 +279,11 @@
     var o = order(idx, layer);
 
     $('date-display').textContent = date;
-    $('day-info').textContent = '(' + DOW[new Date(date + 'T00:00:00').getDay()] + ') '
-      + LAYER_NAMES[layer];
-    $('tb-layer').textContent = LAYER_NAMES[layer];
+    $('day-info').textContent = t('map.dayinfo', {
+      dow: t('map.dow.' + new Date(date + 'T00:00:00').getDay()),
+      layer: layerName(layer)
+    });
+    $('tb-layer').textContent = layerName(layer);
     $('day-slider').value = idx;
     $('prev-day').disabled = idx === 0;
     $('next-day').disabled = idx === D.dates.length - 1;
@@ -318,7 +309,7 @@
         + '</button>';
     });
     $('rank-list').innerHTML = html
-      || '<div class="small" style="padding:8px 0">本日は表示対象のセルなし</div>';
+      || '<div class="small" style="padding:8px 0">' + t('map.rank.empty') + '</div>';
 
     if (selected !== null) fillDetail(selected);
   }
@@ -365,7 +356,7 @@
     var glmOrder = order(idx, 'glm');
     var glmRank = glmOrder.indexOf(cell) + 1;
     $('dp-glm').textContent = (glm[cell] * 100).toFixed(1) + '%';
-    $('dp-rank').textContent = '第' + glmRank + '位 / ' + glm.length + '位中';
+    $('dp-rank').textContent = t('map.dp.rankval', { r: glmRank, n: glm.length });
     $('dp-hbm').textContent = (hb[cell] * 100).toFixed(1) + '%';
 
     /* "agrees" = the complementary layer puts this cell on the same side of
@@ -375,10 +366,8 @@
     var inEt = order(idx, 'et').indexOf(cell) < 20;
     $('dp-ttm').textContent = ttm[cell].toFixed(3);
     $('dp-et').textContent = et[cell].toFixed(3);
-    $('dp-ttm-agree').innerHTML = inGlm === inTtm
-      ? '<span class="dp-agree">✓ 一致</span>' : '<span class="dp-disagree">✗ 不一致</span>';
-    $('dp-et-agree').innerHTML = inGlm === inEt
-      ? '<span class="dp-agree">✓ 一致</span>' : '<span class="dp-disagree">✗ 不一致</span>';
+    $('dp-ttm-agree').innerHTML = agreeHTML(inGlm === inTtm);
+    $('dp-et-agree').innerHTML = agreeHTML(inGlm === inEt);
 
     var h = D.hist[cell];
     $('dp-h30').textContent = h[0];
@@ -386,22 +375,24 @@
     $('dp-hall').textContent = h[2];
   }
 
+  function agreeHTML(agrees) {
+    return agrees
+      ? '<span class="dp-agree">' + t('map.agree') + '</span>'
+      : '<span class="dp-disagree">' + t('map.disagree') + '</span>';
+  }
+
   /* ── legend ────────────────────────────────────────────────────────────── */
   function updateLegend() {
     var prob = !!PROB_LAYERS[layer];
     var pct = PROB_TIERS.map(function (v) { return (v * 100).toFixed(0); });
-    var labs = prob
-      ? ['緊急 (≥' + pct[0] + '%)', '高危険 (' + pct[1] + '–' + pct[0] + '%)',
-         '警戒 (' + pct[2] + '–' + pct[1] + '%)', '注意 (' + pct[2] + '% 未満)']
-      : ['本日 上位' + RANK_TIERS[0], '上位' + RANK_TIERS[1], '上位' + RANK_TIERS[2], 'それ以外'];
-    for (var i = 0; i < 4; i++) $('leg-' + i).textContent = labs[i];
-    $('leg-mode').textContent = prob ? '予測確率' : '当日の相対順位';
-    $('leg-note').textContent = prob
-      ? 'GLM-Logit と HierBayes の値は予測確率そのもの。'
-      : 'TTM と Extra Trees の生スコアは確率として較正されていない'
-        + '(Extra Trees の Brier Skill Score は −1.63)。確率としては読めないため、'
-        + '当日の順位で色分けしている。';
-    $('layer-note').textContent = LAYER_NOTES[layer];
+    for (var i = 0; i < 4; i++) {
+      $('leg-' + i).textContent = prob
+        ? t('map.legend.prob.' + i, { a: pct[0], b: pct[1], c: pct[2] })
+        : t('map.legend.rank.' + i, { n: RANK_TIERS[Math.min(i, 2)] });
+    }
+    $('leg-mode').textContent = t(prob ? 'map.legend.mode.prob' : 'map.legend.mode.rank');
+    $('leg-note').textContent = t(prob ? 'map.legend.note.prob' : 'map.legend.note.rank');
+    $('layer-note').textContent = t('map.layerNote.' + layer);
   }
 
   /* ── navigation ────────────────────────────────────────────────────────── */
@@ -419,7 +410,7 @@
   }
   function setTopN(n) {
     topN = n;
-    $('topn-val').textContent = n;
+    $('topn-label').textContent = t('map.topnLabel', { n: n, total: D.gids.length });
     document.querySelectorAll('#topn-rail .chip').forEach(function (b) {
       b.setAttribute('aria-pressed', String(parseInt(b.dataset.n, 10) === n));
     });
@@ -427,7 +418,7 @@
   }
   function setPlaying(on) {
     playing = on;
-    $('play-btn').textContent = on ? '⏸ 停止' : '▶ 再生';
+    $('play-btn').textContent = t(on ? 'map.pause' : 'map.play');
     clearTimeout(playTimer);
     if (on) step();
   }
@@ -437,19 +428,23 @@
     playTimer = setTimeout(step, parseInt($('speed-sel').value, 10));
   }
 
-  /* ── URL state (shareable day / layer / budget) ────────────────────────── */
+  /* ── URL state (shareable day / layer / budget / language) ─────────────── */
   var urlTimer = null;
   function syncURL() {
     clearTimeout(urlTimer);
     urlTimer = setTimeout(function () {
-      var q = '?d=' + D.dates[idx] + '&l=' + layer + '&k=' + topN;
-      history.replaceState(null, '', q);
+      var q = new URLSearchParams(location.search);
+      q.set('d', D.dates[idx]);
+      q.set('l', layer);
+      q.set('k', topN);
+      q.set('lang', KW.lang);
+      history.replaceState(null, '', '?' + q.toString());
     }, 400);
   }
   function readURL() {
     var p = new URLSearchParams(location.search);
     var d = p.get('d'), l = p.get('l'), k = parseInt(p.get('k'), 10);
-    if (l && LAYER_NAMES[l]) layer = l;
+    if (l && LAYERS[l]) layer = l;
     if (k && k >= 1 && k <= D.gids.length) topN = k;
     var want = d && D.dates.indexOf(d) >= 0 ? d : DEFAULT_DATE;
     idx = D.dates.indexOf(want);
@@ -467,8 +462,8 @@
       btn.classList.remove('on');
       return;
     }
-    if (!navigator.geolocation) { toast('この端末では現在地を取得できません'); return; }
-    toast('現在地を取得中…');
+    if (!navigator.geolocation) { toast(t('map.toast.nogeo')); return; }
+    toast(t('map.toast.locating'));
     navigator.geolocation.getCurrentPosition(function (pos) {
       var ll = [pos.coords.latitude, pos.coords.longitude];
       meCircle = L.circle(ll, {
@@ -485,14 +480,14 @@
       var cell = cellAt(ll[0], ll[1]);
       if (cell === -1) {
         map.setView(ll, 10);
-        toast('現在地は山形県の予測グリッド外です');
+        toast(t('map.toast.outside'));
         return;
       }
       map.setView(ll, 10);
       showDetail(cell, true);
-      toast(cityOf(cell) + ' のセルを表示中');
+      toast(t('map.toast.cell', { city: cityOf(cell) }));
     }, function (err) {
-      toast(err.code === 1 ? '位置情報の利用が許可されていません' : '現在地を取得できませんでした');
+      toast(t(err.code === 1 ? 'map.toast.denied' : 'map.toast.failed'));
     }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
   }
   function cellAt(lat, lng) {
@@ -514,12 +509,12 @@
     });
 
     var rail = $('month-rail');
-    ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
-      .forEach(function (name, m) {
+    for (var mi = 0; mi < 12; mi++) {
+      (function (m) {
         var b = document.createElement('button');
         b.className = 'chip';
         b.type = 'button';
-        b.textContent = name;
+        b.textContent = t('map.month.' + (m + 1));
         b.dataset.month = m;
         b.setAttribute('aria-pressed', 'false');
         b.addEventListener('click', function () {
@@ -529,7 +524,8 @@
           b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
         });
         rail.appendChild(b);
-      });
+      })(mi);
+    }
 
     document.querySelectorAll('#layer-rail .chip').forEach(function (b) {
       b.addEventListener('click', function () { setLayer(b.dataset.layer); });
@@ -572,6 +568,19 @@
       }, 200);
     });
 
+    /* Everything the app draws itself — layer names, tier labels, the legend,
+       the month rail — is rebuilt when the language changes. */
+    document.addEventListener('kw:lang', function () {
+      document.querySelectorAll('#month-rail .chip').forEach(function (b) {
+        b.textContent = t('map.month.' + (parseInt(b.dataset.month, 10) + 1));
+      });
+      shownMonth = -1;
+      setTopN(topN);
+      setPlaying(playing);
+      updateLegend();
+      render();
+    });
+
     document.addEventListener('keydown', function (e) {
       if (e.key === 'ArrowLeft') { setPlaying(false); goTo(idx - 1); }
       if (e.key === 'ArrowRight') { setPlaying(false); goTo(idx + 1); }
@@ -600,7 +609,7 @@
   }
   function boot() {
     if (typeof L === 'undefined' || !L.map) {
-      fail('地図ライブラリ (Leaflet) を読み込めませんでした。<br><span class="small">オフラインの場合は接続を確認してください。</span>');
+      fail(t('map.fail.leaflet'));
       return;
     }
     var pending = window.__kwDataRaw
@@ -610,8 +619,9 @@
           return r.json();
         });
     window.__kwData = null;
-    pending
-      .then(function (payload) {
+    Promise.all([pending, KW.ready])
+      .then(function (res) {
+        var payload = res[0];
         if (!payload || !payload.dates) throw new Error('empty payload');
         D = payload;
         readURL();
@@ -628,15 +638,13 @@
       })
       .catch(function () {
         window.__kwData = null;
-        fail(location.protocol === 'file:'
-          ? '予測データを読み込めませんでした。<br><span class="small">mobile-data/yamagata_2025.js がフォルダ内にあるか確認してください。</span>'
-          : '予測データを読み込めませんでした。<br><span class="small">通信状況を確認して再試行してください。</span>');
+        fail(t(location.protocol === 'file:' ? 'map.fail.dataLocal' : 'map.fail.data'));
       });
   }
 
   $('loader-retry').addEventListener('click', function () {
     $('loader').classList.remove('error');
-    $('loader-msg').textContent = '再読み込み中…';
+    $('loader-msg').textContent = t('map.reloading');
     boot();
   });
 

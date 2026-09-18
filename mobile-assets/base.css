@@ -100,6 +100,19 @@ code {
   clip-path: inset(50%); white-space: nowrap;
 }
 
+/* Language switch — same control at the top of both pages. */
+.lang {
+  display: flex; gap: 2px; flex: none; padding: 3px;
+  background: var(--sunken); border: 1px solid var(--line-soft);
+  border-radius: 999px;
+}
+.lang button {
+  min-height: 32px; padding: 0 11px; border: 0; border-radius: 999px;
+  background: transparent; color: var(--muted);
+  font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.lang button[aria-pressed="true"] { background: var(--accent-dk); color: #c8f0d8; }
+
 /* Risk tiers — shared by the index legend and the map. */
 .t-alert { background: var(--alert); color: #fff; }
 .t-high  { background: var(--high);  color: #fff; }
