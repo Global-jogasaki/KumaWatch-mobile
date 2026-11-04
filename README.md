@@ -1,5 +1,29 @@
 # KumaWatch — Mobile Edition 🐻📱
 
+[![Live site](https://img.shields.io/badge/Live%20site-GitHub%20Pages-brightgreen.svg)](https://global-jogasaki.github.io/KumaWatch-mobile/)
+[![Code](https://img.shields.io/badge/code-Apache%202.0-blue.svg)](LICENSE)
+[![Data](https://img.shields.io/badge/data-CC%20BY%204.0-blue.svg)](https://creativecommons.org/licenses/by/4.0/)
+
+## 🌐 公開サイト / Live site
+
+### https://global-jogasaki.github.io/KumaWatch-mobile/
+
+| ページ | 内容 |
+|---|---|
+| [**📱 トップページ**](https://global-jogasaki.github.io/KumaWatch-mobile/) | ベンチマーク結果 — Recall@K / Precision@K / ROC-AUC / 日次ケース |
+| [**🗺️ 予測マップ**](https://global-jogasaki.github.io/KumaWatch-mobile/map.html) | 山形県 144セル × 365日 × 4レイヤーのインタラクティブマップ |
+| [**🌐 English**](https://global-jogasaki.github.io/KumaWatch-mobile/?lang=en) | 日本語 / English は各ページ右上でいつでも切り替え |
+
+<img src="mobile-docs/qr-site.png" alt="QR code for https://global-jogasaki.github.io/KumaWatch-mobile/" width="150">
+
+スマートフォンのカメラでこのQRコードを読み取ると、そのまま開けます。
+ホーム画面に追加しておくと、次回以降は通信がなくても開けます(背景地図を除く)。
+
+マップのURLは日付・レイヤー・表示セル数・言語を保持するので、特定の日の予測をそのまま共有できます —
+例: [2025-10-15 の GLM-Logit 上位20セル](https://global-jogasaki.github.io/KumaWatch-mobile/map.html?d=2025-10-15&l=glm&k=20&lang=ja)。
+
+---
+
 スマートフォン(iPhone / Android)向けに最適化した **KumaWatch** の公開サイトです。
 デスクトップ版([todalaba/KumaWatch](https://github.com/todalaba/KumaWatch) / [Global-jogasaki/KumaWatch](https://github.com/Global-jogasaki/KumaWatch))と
 **同一の公開済みスコア行列・同一の数値**を、片手操作・低速回線・小さい画面を前提に作り直したものです。
@@ -58,7 +82,10 @@ sw.js                      # offline cache (shell + scores + Leaflet)
 mobile-tools/
   build_data.py            # rebuild mobile-data/*.json from the desktop map
   make_icons.py            # rasterise the home-screen icons (no image dependencies)
+  make_qr.py               # render the README's QR code for the live site
   test/smoke.js            # headless iPhone-sized smoke test
+mobile-docs/
+  qr-site.png              # QR code shown in this README
 ```
 
 ## Languages
@@ -121,8 +148,17 @@ tiles are stubbed (`mobile-tools/test/leaflet-stub.js`), so it runs without netw
 
 ## Deployment
 
-GitHub Pages, served from the repository root (`.nojekyll` keeps Jekyll out of the way).
-Settings → Pages → Branch: `main` / `(root)`.
+GitHub Pages serves the repository root of `main` (https://global-jogasaki.github.io/KumaWatch-mobile/);
+`.nojekyll` keeps Jekyll from touching the files. The site is plain static files, so there is no
+build step and nothing to configure beyond the source branch:
+
+> Settings → Pages → Source: *Deploy from a branch* → Branch: `main` / `(root)`
+
+That switch has to be thrown once by a repository admin — creating the Pages site is a settings
+write, which an API token scoped to repository contents cannot do.
+
+The QR code above is regenerated with `python mobile-tools/make_qr.py` (needs `pip install qrcode`),
+and only has to change if the published URL does.
 
 ## License
 
